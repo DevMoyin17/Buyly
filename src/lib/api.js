@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // const API_URL = 'http://localhost:3000/api';
-const API_URL = 'https://buyly-backend-1.onrender.com';
+const API_URL = 'https://buyly-backend.onrender.com';
 
 
 export const api = {
