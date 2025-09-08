@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 // const API_URL = 'http://localhost:3000/api';
-const API_URL = 'https://buyly-backend.onrender.com';
+// const API_URL = 'https://buyly-backend.onrender.com';
+const API_URL = 'https://buyly-backend.vercel.app/';
 
 
 export const api = {
