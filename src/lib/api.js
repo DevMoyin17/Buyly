@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // const API_URL = 'http://localhost:3000/api';
-const API_URL = 'https://mini-ecommerce-server-zjfl.onrender.com/api';
+const API_URL = 'https://buyly-backend-1.onrender.com';
 
 
 export const api = {
