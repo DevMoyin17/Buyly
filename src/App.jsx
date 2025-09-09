@@ -10,7 +10,7 @@ import Checkout from "./pages/Checkout";
 import Admin from "./pages/Admin";
 import AdminAuth from "./components/admin/AdminAuth";
 import Footer from "./components/Footer";
-import AM from "./assets/AM.png"
+import BUYLY from "./assets/BUYLY.png"
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -30,7 +30,7 @@ function App() {
       
       <nav className="bg-gray-800 text-white p-4">
         <div className="flex justify-between items-center md:hidden">
-          <span className="font-bold"><img src={AM} alt="" className="h-10 w-10" /></span>
+          <span className="font-bold"><img src={BUYLY} alt="" className="h-10 w-10" /></span>
           <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2">
             <MenuIcon className="h-6 w-6" />
           </button>
