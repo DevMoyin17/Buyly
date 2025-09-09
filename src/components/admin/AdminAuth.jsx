@@ -12,7 +12,7 @@ const AdminAuth = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch('https://buyly-backend.onrender.com/admin-login', {
+      const response = await fetch('https://buyly-backend-2.onrender.com/api/admin-login', {
       // const response = await fetch('http://localhost:3000/api/admin-login', {
         method: 'POST',
         headers: {
