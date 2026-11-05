@@ -11,7 +11,6 @@ import { Pencil, Trash2, Save } from "lucide-react";
 const ProductList = () => {
   const { products, fetchProducts } = useStore();
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({
     name: "",
@@ -28,7 +27,7 @@ const ProductList = () => {
     try {
       const data = await api.fetchOrders();
       setOrders(data);
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch orders");
     }
   };
@@ -41,7 +40,7 @@ const ProductList = () => {
       await api.updateStock(id, Number(newStock));
       await fetchProducts();
       toast.success("Stock updated successfully!");
-    } catch (error) {
+    } catch {
       toast.error("Failed to update stock");
     }
   };
@@ -62,7 +61,7 @@ const ProductList = () => {
       await fetchProducts();
       setEditingId(null);
       toast.success("Product updated successfully!");
-    } catch (error) {
+    } catch {
       toast.error("Failed to update product");
     }
   };
@@ -74,7 +73,7 @@ const ProductList = () => {
       await api.deleteProduct(id);
       await fetchProducts();
       toast.success("Product deleted successfully!");
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete product");
     }
   };

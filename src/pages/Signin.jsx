@@ -1,121 +1,121 @@
-import { useEffect, useState } from "react";
-import { useFormik } from 'formik';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useFormik } from "formik";
 import * as yup from "yup";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import axios from "axios";
+import { toast } from "sonner";
+import AuthShell from "@/components/storefront/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import Navbar from "@/components/Navbar";
-import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
 
-const Auth = () => {
-  const [isPasswordShow, setIsPasswordShow] = useState(false)
-  const [message, setMessage] = useState(''); // State for messages
-  const [isLoading, setIsLoading] = useState(false); 
-  const   navigate = useNavigate();   
-  const url = "https://bookit-app-vn3p.vercel.app/user/signin"
+const Signin = () => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const url = "https://bookit-app-vn3p.vercel.app/user/signin";
 
-  
-
-  useEffect(() => {
-    if (message) {
-      toast.success(message); // Show success toast with message from backend
-    }
-  }, [message]); 
-
-
-    const formik = useFormik({
-        initialValues: {
-            Email: "",
-            Password: "",
-        },
-        
-
-        onSubmit: (values) => {
-            setIsLoading(true);
-            console.log(values);
-            axios.post(url, values)
-                .then((res) => {
-                  const successMessage = res.data.message || "Successfully signed in!";
-                  setMessage(successMessage); // Set success message for toast
-          
-                    navigate("/home")
-                    localStorage.setItem('token', res.data.token); 
-                })
-                .catch((err) => {
-                  const errorMessage = err.response?.data.message || 'An error occurred';
-                  setMessage(errorMessage); // Set error message for toast
-                })
-                .finally(() => {
-                    setIsLoading(false);
-                })
-        },
-
-        validationSchema: yup.object({
-            
-            Email: yup.string().required("Email is required"),
-            Password: yup
-                .string()
-                .required("Password is required")
-                .matches(
-                    /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[\W_]).{8,}$/,
-                    "Password must be at least 8 characters long, with at least one uppercase letter, one lowercase letter, one number, and one special character"
-                ),
-        }),
-    });
+  const formik = useFormik({
+    initialValues: {
+      Email: "",
+      Password: "",
+    },
+    validationSchema: yup.object({
+      Email: yup.string().email("Enter a valid email").required("Email is required"),
+      Password: yup.string().required("Password is required"),
+    }),
+    onSubmit: (values) => {
+      setIsLoading(true);
+      axios
+        .post(url, values)
+        .then((res) => {
+          toast.success(res.data?.message || "Welcome back to Glowora.");
+          if (res.data?.token) localStorage.setItem("token", res.data.token);
+          navigate("/");
+        })
+        .catch((err) => {
+          toast.error(err.response?.data?.message || "Could not sign you in.");
+        })
+        .finally(() => setIsLoading(false));
+    },
+  });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-md mx-auto">
-          <div className="bg-white rounded-lg shadow-sm p-8">
-            <h1 className="text-2xl font-bold mb-6 text-center">
-              SIGNIN!!!!!
-            </h1>
-            <span className="text-red-500">{message}</span>
-            <form onSubmit={formik.handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input type="email" placeholder="EmaiIl" name='Email' onChange={formik.handleChange}/>
-                                <small>{formik.errors.Email}</small>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className='flex'>
-                                <Input type={isPasswordShow ? "text" : "password"} placeholder="Password" name='Password'  onChange={formik.handleChange}/>
-                                <button type='button' class="input-group-text" id="addon-wrapping" onClick={() => { setIsPasswordShow(!isPasswordShow) }} ><i class={`fa-solid fa-eye${isPasswordShow ? "" : "-slash"}`}></i></button>
-                                </div>
-                                <small>{formik.errors.Password}</small>
-              </div>
-              
-              <Button type="submit" className="w-full" disabled={isLoading}>
-              {
-                      !isLoading ? 
-                      "Sign In"
-                      : "Signing In..........."
-                    }
-              </Button>
-            </form>
-            
-            <div className="mt-4 text-center">
-            <p>
-                                {/* <a href="">Forget password?</a> */}
-                               <small>Don't have an account?</small> <a href="">
-                                <Link to="/auth">
-                                Create an account.
-                                </Link>
-                                </a>
-                            </p>
-            </div>
-          </div>
+    <AuthShell
+      eyebrow="Welcome back"
+      title="Sign in to Glowora"
+      description="Pick up where you left off, check your wishlist and get back to the good stuff."
+      footer={
+        <span>
+          New to Glowora?{" "}
+          <Link to="/auth" className="font-extrabold text-brand-tangerine hover:text-brand-tangerine-dark">
+            Create an account
+          </Link>
+        </span>
+      }
+    >
+      <form onSubmit={formik.handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="signin-email" className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-brand-muted">
+            Email address
+          </label>
+          <Input
+            id="signin-email"
+            type="email"
+            name="Email"
+            placeholder="you@example.com"
+            className="mt-2"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            value={formik.values.Email}
+            autoComplete="email"
+          />
+          {formik.touched.Email && formik.errors.Email && (
+            <p className="field-error mt-1.5">{formik.errors.Email}</p>
+          )}
         </div>
-      </main>
-    </div>
+
+        <div>
+          <label htmlFor="signin-password" className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-brand-muted">
+            Password
+          </label>
+          <div className="relative mt-2">
+            <Input
+              id="signin-password"
+              type={showPassword ? "text" : "password"}
+              name="Password"
+              placeholder="Your password"
+              className="pr-11"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              value={formik.values.Password}
+              autoComplete="current-password"
+            />
+            <button
+              type="button"
+              className="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-brand-muted transition hover:bg-brand-peach hover:text-brand-ink"
+              onClick={() => setShowPassword((value) => !value)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+          {formik.touched.Password && formik.errors.Password && (
+            <p className="field-error mt-1.5">{formik.errors.Password}</p>
+          )}
+        </div>
+
+        <Button type="submit" className="mt-2 w-full" disabled={isLoading}>
+          {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          {isLoading ? "Signing in" : "Sign in"}
+        </Button>
+
+        <p className="text-center text-[10px] leading-5 text-brand-muted">
+          Your account keeps your wishlist and checkout details in one place.
+        </p>
+      </form>
+    </AuthShell>
   );
 };
 
-export default Auth;
+export default Signin;

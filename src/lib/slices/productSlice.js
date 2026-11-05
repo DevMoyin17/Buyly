@@ -71,21 +71,17 @@ export const createProductSlice = (set, get) => ({
   },
 
   updateInventory: async (productId, newStock) => {
-    try {
-      const product = get().products.find(p => p.id === productId);
-      if (!product) return;
-      
-      const updatedProduct = { ...product, stock: newStock };
-      await api.updateProduct(productId, updatedProduct);
-      
-      set(state => ({
-        products: state.products.map(p => 
-          p.id === productId ? updatedProduct : p
-        ),
-        inventory: { ...state.inventory, [productId]: newStock }
-      }));
-    } catch (error) {
-      throw error;
-    }
+    const product = get().products.find(p => p.id === productId);
+    if (!product) return;
+
+    const updatedProduct = { ...product, stock: newStock };
+    await api.updateProduct(productId, updatedProduct);
+
+    set(state => ({
+      products: state.products.map(p =>
+        p.id === productId ? updatedProduct : p
+      ),
+      inventory: { ...state.inventory, [productId]: newStock }
+    }));
   }
 });

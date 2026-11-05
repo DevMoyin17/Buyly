@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "@/components/Navbar";
 import ProductForm from "@/components/admin/ProductForm";
 import ProductList from "@/components/admin/ProductList";
 import { useStore } from "@/lib/store";
@@ -43,46 +42,53 @@ const Admin = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <main className="container mx-auto px-4 py-8">
+      <div className="container py-12">
+        <div className="store-panel mx-auto max-w-xl p-6">
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
-        </main>
+          <Button className="mt-4" variant="outline" onClick={() => fetchProducts()}>
+            Try again
+          </Button>
+        </div>
       </div>
     );
   }
 
-   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <Button onClick={handleLogout} variant="outline">
-            Logout
-          </Button>
+  return (
+    <div className="container py-8 sm:py-10">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="eyebrow">Store admin</p>
+          <h1 className="mt-1 text-3xl font-extrabold tracking-[-0.045em] sm:text-4xl">Admin dashboard</h1>
+          <p className="mt-2 text-sm text-brand-muted">Manage the Glowora collection and keep stock up to date.</p>
         </div>
-        
-        {isLoading ? (
-          <div className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin" />
-          </div>
-        ) : (
-          <div className="grid gap-8">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold mb-4">Add New Product</h2>
+        <Button onClick={handleLogout} variant="outline">Logout</Button>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center items-center py-16">
+          <Loader2 className="h-8 w-8 animate-spin text-brand-tangerine" />
+        </div>
+      ) : (
+        <div className="mt-8 grid gap-6">
+          <section className="store-panel p-5 sm:p-6">
+            <h2 className="text-xl font-extrabold">Add new product</h2>
+            <p className="mt-1 text-xs text-brand-muted">New items appear in the storefront instantly after saving.</p>
+            <div className="mt-5">
               <ProductForm />
             </div>
-            
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold mb-4">Product List</h2>
+          </section>
+
+          <section className="store-panel p-5 sm:p-6">
+            <h2 className="text-xl font-extrabold">Product catalogue</h2>
+            <p className="mt-1 text-xs text-brand-muted">Edit products, update stock and review incoming orders.</p>
+            <div className="mt-5">
               <ProductList />
             </div>
-          </div>
-        )}
-      </main>
+          </section>
+        </div>
+      )}
     </div>
   );
 };

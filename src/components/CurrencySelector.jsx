@@ -1,27 +1,36 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CURRENCIES } from "@/lib/format";
 import { useStore } from "@/lib/store";
-const currencies = [
-  { code: "USD", symbol: "$" },
-  { code: "EUR", symbol: "€" },
-  { code: "GBP", symbol: "£" },
-  { code: "JPY", symbol: "¥" },
-  { code: "NGN", symbol: "₦" },
-];
-const CurrencySelector = () => {
-  const { currency, setCurrency, exchangeRates } = useStore();
+import { cn } from "@/lib/utils";
+
+const CurrencySelector = ({ className = "" }) => {
+  const currency = useStore((state) => state.currency);
+  const setCurrency = useStore((state) => state.setCurrency);
+
   return (
     <Select value={currency} onValueChange={setCurrency}>
-      <SelectTrigger className="w-24">
+      <SelectTrigger
+        className={cn("h-9 w-[92px] border-brand-line bg-white/70 text-[11px]", className)}
+        aria-label="Choose currency"
+      >
         <SelectValue placeholder="Currency" />
       </SelectTrigger>
-      <SelectContent>
-        {currencies.map((curr) => (
-          <SelectItem key={curr.code} value={curr.code}>
-            {curr.symbol} {curr.code}
+      <SelectContent align="end">
+        {CURRENCIES.map((item) => (
+          <SelectItem key={item.code} value={item.code}>
+            <span className="mr-2 text-brand-tangerine">{item.symbol}</span>
+            {item.code}
           </SelectItem>
         ))}
       </SelectContent>
     </Select>
   );
 };
+
 export default CurrencySelector;

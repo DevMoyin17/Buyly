@@ -4,6 +4,7 @@ import { createCurrencySlice } from './slices/currencySlice';
 import { createCartSlice } from './slices/cartSlice';
 import { createProductSlice } from './slices/productSlice';
 import { createOrderSlice } from './slices/orderSlice';
+import { createWishlistSlice } from './slices/wishlistSlice';
 
 export const useStore = create(
   persist(
@@ -12,6 +13,7 @@ export const useStore = create(
       ...createCartSlice(set, get),
       ...createProductSlice(set, get),
       ...createOrderSlice(set, get),
+      ...createWishlistSlice(set, get),
     }),
     {
       name: 'shopping-cart',

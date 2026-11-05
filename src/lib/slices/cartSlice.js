@@ -2,96 +2,95 @@ import { api } from '../api';
 
 export const createCartSlice = (set, get) => ({
   cart: [],
-  
-  addToCart: async (product) => {
-    try {
-      const currentStock = product.stock;
-      if (currentStock <= 0) return;
-      
-      const existingItem = get().cart.find((item) => item.id === product.id);
-      const newStock = currentStock - 1;
-      
-      // Update stock in database
-      await api.updateStock(product.id, newStock);
 
-      if (existingItem) {
-        set({
-          cart: get().cart.map((item) =>
-            item.id === product.id
-              ? { ...item, quantity: item.quantity + 1 }
-              : item
-          ),
-        });
-      } else {
-        set({
-          cart: [...get().cart, { ...product, quantity: 1 }],
-        });
-      }
-      
-      // Refresh products to update stock
-      const { fetchProducts } = get();
-      await fetchProducts();
-    } catch (error) {
-      throw error;
+  addToCart: async (product, quantity = 1) => {
+    const amount = Math.max(1, Number(quantity) || 1);
+    const currentStock = Number(product.stock);
+    if (!Number.isFinite(currentStock) || currentStock < amount) {
+      throw new Error('Not enough stock available');
     }
+
+    const existingItem = get().cart.find((item) => item.id === product.id);
+    const newStock = currentStock - amount;
+
+    await api.updateStock(product.id, newStock);
+
+    if (existingItem) {
+      set({
+        cart: get().cart.map((item) =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + amount }
+            : item,
+        ),
+      });
+    } else {
+      set({
+        cart: [...get().cart, { ...product, quantity: amount }],
+      });
+    }
+
+    await get().fetchProducts();
   },
 
   removeFromCart: async (productId) => {
-    try {
-      const item = get().cart.find((i) => i.id === productId);
-      if (!item) return;
+    const item = get().cart.find((entry) => entry.id === productId);
+    if (!item) return;
 
-      const product = get().products.find(p => p.id === productId);
-      const newStock = product.stock + item.quantity;
-      
-      // Update stock in database
-      await api.updateStock(productId, newStock);
-      
-      set({
-        cart: get().cart.filter((item) => item.id !== productId),
-      });
-      
-      // Refresh products to update stock
-      const { fetchProducts } = get();
-      await fetchProducts();
-    } catch (error) {
-      throw error;
-    }
+    const product = get().products.find((entry) => entry.id === productId);
+    const currentStock = Number(product?.stock ?? item.stock ?? 0);
+    await api.updateStock(productId, currentStock + item.quantity);
+
+    set({
+      cart: get().cart.filter((entry) => entry.id !== productId),
+    });
+
+    await get().fetchProducts();
   },
 
   updateQuantity: async (productId, quantity) => {
-    try {
-      const item = get().cart.find((i) => i.id === productId);
-      if (!item) return;
-      
-      const product = get().products.find(p => p.id === productId);
-      const quantityDiff = quantity - item.quantity;
-      const newStock = product.stock - quantityDiff;
-      
-      if (newStock < 0) return;
-      
-      // Update stock in database
-      await api.updateStock(productId, newStock);
-      
-      if (quantity === 0) {
-        set({
-          cart: get().cart.filter((item) => item.id !== productId),
-        });
-      } else {
-        set({
-          cart: get().cart.map((item) =>
-            item.id === productId ? { ...item, quantity } : item
-          ),
-        });
-      }
-      
-      // Refresh products to update stock
-      const { fetchProducts } = get();
-      await fetchProducts();
-    } catch (error) {
-      throw error;
+    const item = get().cart.find((entry) => entry.id === productId);
+    if (!item) return;
+
+    const product = get().products.find((entry) => entry.id === productId);
+    if (!product) return;
+
+    const quantityDiff = quantity - item.quantity;
+    const newStock = Number(product.stock) - quantityDiff;
+    if (newStock < 0) return;
+
+    await api.updateStock(productId, newStock);
+
+    if (quantity === 0) {
+      set({
+        cart: get().cart.filter((entry) => entry.id !== productId),
+      });
+    } else {
+      set({
+        cart: get().cart.map((entry) =>
+          entry.id === productId ? { ...entry, quantity } : entry,
+        ),
+      });
     }
+
+    await get().fetchProducts();
   },
 
-  clearCart: () => set({ cart: [] }),
+  clearCart: async (restoreStock = false) => {
+    const items = get().cart;
+
+    if (restoreStock) {
+      await Promise.allSettled(
+        items.map(async (item) => {
+          const product = get().products.find((entry) => entry.id === item.id);
+          const currentStock = Number(product?.stock ?? item.stock ?? 0);
+          await api.updateStock(item.id, currentStock + item.quantity);
+        }),
+      );
+      set({ cart: [] });
+      await get().fetchProducts();
+      return;
+    }
+
+    set({ cart: [] });
+  },
 });

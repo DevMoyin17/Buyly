@@ -1,28 +1,19 @@
-import { useFormik } from 'formik';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useFormik } from "formik";
 import * as yup from "yup";
-import { useEffect, useState } from "react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import axios from "axios";
+import { toast } from "sonner";
+import AuthShell from "@/components/storefront/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import Navbar from "@/components/Navbar";
-import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
 const Auth = () => {
-const [isPasswordShow, setIsPasswordShow] = useState(false);
-const [message, setMessage] = useState(''); // State for messages
-const [isLoading, setIsLoading] = useState(false); 
-const url = "https://bookit-app-vn3p.vercel.app/user/signup"
-const navigate = useNavigate();
-
-useEffect(() => {
-  if (message) {
-    toast.success(message); // Show success toast with message from backend
-  }
-}, [message]); 
-
-
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const url = "https://bookit-app-vn3p.vercel.app/user/signup";
 
   const formik = useFormik({
     initialValues: {
@@ -30,105 +21,130 @@ useEffect(() => {
       Email: "",
       Password: "",
     },
-
-    onSubmit: (values) => {
-      setIsLoading(true); // Start loading
-
-      axios
-        .post(url, values)  // POST request with form data
-        .then((res) => {
-          const successMessage = res.data.message || "Successfully signed up!";
-          setMessage(successMessage);
-  
-          const userName = values.userName; 
-          localStorage.setItem("userName", JSON.stringify({ name: userName })); 
-          navigate("/signin"); // Navigate to signin page after successful submission
-        })
-        .catch((err) => {
-          const errorMessage = err.response?.data.message || 'An error occurred';
-          setMessage(errorMessage); // Set error message for toast
-        })
-        .finally(() => {
-          setIsLoading(false); // Stop loading regardless of success or failure
-        });
-    },
-
-
     validationSchema: yup.object({
-      Email: yup.string().required("Email is required"),
-      Name: yup.string()
-      .required("Name is required")
-      .matches(/^[A-Z]/, "First letter must be uppercase"), 
+      Name: yup
+        .string()
+        .required("Name is required")
+        .matches(/^[A-Z]/, "First letter must be uppercase"),
+      Email: yup.string().email("Enter a valid email").required("Email is required"),
       Password: yup
         .string()
         .required("Password is required")
         .matches(
           /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[\W_]).{8,}$/,
-          "Password must be at least 8 characters long, with at least one uppercase letter, one lowercase letter, one number, and one special character"
+          "Use at least 8 characters, one uppercase, one lowercase, one number and one symbol",
         ),
     }),
+    onSubmit: (values) => {
+      setIsLoading(true);
+      axios
+        .post(url, values)
+        .then((res) => {
+          toast.success(res.data?.message || "Account created. Sign in to continue.");
+          navigate("/signin");
+        })
+        .catch((err) => {
+          toast.error(err.response?.data?.message || "Could not create your account.");
+        })
+        .finally(() => setIsLoading(false));
+    },
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-md mx-auto">
-          <div className="bg-white rounded-lg shadow-sm p-8">
-            <h1 className="text-2xl font-bold mb-6 text-center">
-              CREATE ACCOUNT!!!!
-            </h1> 
-            <span className='text-red-500'>{message}</span>
-            <form onSubmit={formik.handleSubmit} className="space-y-4">
-            
-              <div className="space-y-2">
-                <Label htmlFor="Name">Name</Label>
-                <Input
-                id='userNamee' type="text" placeholder="Name" name='Name' onChange={formik.handleChange}
-                />
-                <small>{formik.errors.Name}</small>
-              </div>
-
-                <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                 type="email" placeholder="Email" name='Email' onChange={formik.handleChange}
-                  required
-                />
-                  <small>{formik.errors.Email}</small>
-              </div>
-              
-              
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className='flex'>
-                <Input type={isPasswordShow ? "text" : "password"} placeholder="Password" name='Password'  onChange={formik.handleChange}/>
-                <button type='button' class="input-group-text" id="addon-wrapping" onClick={() => { setIsPasswordShow(!isPasswordShow) }} ><i class={`fa-solid fa-eye${isPasswordShow ? "" : "-slash"}`}></i></button>
-                </div>
-                <small>{formik.errors.Password}</small>
-              </div>
-              
-              <Button type="submit" className="w-full" disabled={isLoading}>
-              {
-                      !isLoading ? 
-                      "Create Account"
-                      : "Loading"
-                    }
-              </Button>
-            </form>
-            
-            <div className="mt-4 text-center">
-            <p>
-                  <small>Have an account?</small>
-                  <Link to="/signin"> Sign In.</Link>
-                </p>
-           
-            </div>
-          </div>
+    <AuthShell
+      eyebrow="Join the edit"
+      title="Create your account"
+      description="Keep your favourite finds together and make your next checkout a little faster."
+      footer={
+        <span>
+          Already have an account?{" "}
+          <Link to="/signin" className="font-extrabold text-brand-tangerine hover:text-brand-tangerine-dark">
+            Sign in
+          </Link>
+        </span>
+      }
+    >
+      <form onSubmit={formik.handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="name" className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-brand-muted">
+            Full name
+          </label>
+          <Input
+            id="name"
+            name="Name"
+            type="text"
+            placeholder="Your name"
+            className="mt-2"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            value={formik.values.Name}
+            autoComplete="name"
+          />
+          {formik.touched.Name && formik.errors.Name && (
+            <p className="field-error mt-1.5">{formik.errors.Name}</p>
+          )}
         </div>
-      </main>
-    </div>
+
+        <div>
+          <label htmlFor="signup-email" className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-brand-muted">
+            Email address
+          </label>
+          <Input
+            id="signup-email"
+            type="email"
+            name="Email"
+            placeholder="you@example.com"
+            className="mt-2"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            value={formik.values.Email}
+            autoComplete="email"
+          />
+          {formik.touched.Email && formik.errors.Email && (
+            <p className="field-error mt-1.5">{formik.errors.Email}</p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="signup-password" className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-brand-muted">
+            Password
+          </label>
+          <div className="relative mt-2">
+            <Input
+              id="signup-password"
+              type={showPassword ? "text" : "password"}
+              name="Password"
+              placeholder="Create a strong password"
+              className="pr-11"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              value={formik.values.Password}
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              className="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-brand-muted transition hover:bg-brand-peach hover:text-brand-ink"
+              onClick={() => setShowPassword((value) => !value)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+          {formik.touched.Password && formik.errors.Password && (
+            <p className="field-error mt-1.5">{formik.errors.Password}</p>
+          )}
+        </div>
+
+        <Button type="submit" className="mt-2 w-full" disabled={isLoading}>
+          {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          {isLoading ? "Creating account" : "Create account"}
+        </Button>
+
+        <p className="text-center text-[10px] leading-5 text-brand-muted">
+          By creating an account you agree to Glowora&apos;s terms of service and privacy policy.
+        </p>
+      </form>
+    </AuthShell>
   );
 };
 

@@ -1,7 +1,7 @@
 
 import { api } from '../api';
 
-export const createOrderSlice = (set, get) => ({
+export const createOrderSlice = (set) => ({
   orders: [],
   isLoading: false,
   error: null,

@@ -1,65 +1,80 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, LockKeyhole } from "lucide-react";
+import { toast } from "sonner";
+import { API_URL } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 
 const AdminAuth = () => {
   const [pin, setPin] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setIsLoading(true);
 
     try {
-      const response = await fetch('https://buyly-backend-2.onrender.com/api/admin-login', {
-      // const response = await fetch('http://localhost:3000/api/admin-login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch(`${API_URL}/admin-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pin }),
       });
 
       if (response.ok) {
-        const data = await response.json();
-
-        // Store admin session if login is successful
-        localStorage.setItem("adminSession", JSON.stringify({
-          loggedIn: true,
-          timestamp: new Date().toISOString(),
-        }));
-
-        toast.success("Successfully logged in as admin");
+        localStorage.setItem(
+          "adminSession",
+          JSON.stringify({ loggedIn: true, timestamp: new Date().toISOString() }),
+        );
+        toast.success("Welcome to the admin dashboard.");
         navigate("/admin");
       } else {
         const data = await response.json();
         toast.error(data.message || "Invalid PIN");
       }
-    } catch (error) {
-      toast.error("An error occurred while logging in.");
-      console.error("Error details:", error);
+    } catch {
+      toast.error("Could not reach the admin server. Make sure the backend is running.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-sm max-w-md w-full">
-        <h1 className="text-2xl font-bold mb-6 text-center">Admin Access</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="container py-16 sm:py-24">
+      <div className="store-panel mx-auto max-w-md p-6 sm:p-8">
+        <div className="flex items-center justify-between">
+          <span className="grid h-11 w-11 place-items-center rounded-full bg-brand-peach text-brand-tangerine">
+            <LockKeyhole className="h-5 w-5" />
+          </span>
+          <Link to="/" className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-muted transition hover:text-brand-ink">
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Store
+          </Link>
+        </div>
+        <h1 className="mt-5 text-3xl font-extrabold tracking-[-0.045em]">Admin access</h1>
+        <p className="mt-2 text-sm leading-6 text-brand-muted">
+          Enter the store PIN to manage the catalogue and orders.
+        </p>
+
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Enter Admin PIN</label>
+            <label htmlFor="admin-pin" className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-brand-muted">
+              Store PIN
+            </label>
             <Input
+              id="admin-pin"
               type="password"
               maxLength={4}
               value={pin}
-              onChange={(e) => setPin(e.target.value)}
-              placeholder="Enter 4-digit PIN"
+              onChange={(event) => setPin(event.target.value)}
+              placeholder="4-digit PIN"
+              className="mt-2"
               required
             />
           </div>
-          <Button type="submit" className="w-full">
-            Login
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Signing in" : "Sign in"}
           </Button>
         </form>
       </div>
