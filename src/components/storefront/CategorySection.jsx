@@ -14,7 +14,11 @@ const CategorySection = ({ categories = [], activeCategory = "all", onSelect }) 
       />
 
       <Reveal className="mt-8">
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5">
+        <div
+          className={`grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 ${
+            categories.length > 5 ? "xl:grid-cols-6" : "lg:grid-cols-5"
+          }`}
+        >
         {categories.map((category) => {
           const isActive = activeCategory === category.id;
           return (
