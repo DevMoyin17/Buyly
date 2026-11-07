@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { ShoppingBag } from "lucide-react";
+import { Fragment, useMemo, useState } from "react";
+import { ChevronDown, ShoppingBag } from "lucide-react";
 import { formatAdminDate } from "@/lib/adminMetrics";
 import { useAdminMoney } from "@/lib/useAdminMoney";
 
@@ -22,9 +22,22 @@ const STATUS_LABELS = {
   pending: "Pending",
 };
 
+const formatShippingAddress = (shipping) =>
+  [
+    shipping?.address,
+    shipping?.apartment,
+    shipping?.city,
+    shipping?.state,
+    shipping?.postalCode,
+    shipping?.country,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
 const OrdersPanel = ({ orders = [] }) => {
   const money = useAdminMoney();
   const [filter, setFilter] = useState("all");
+  const [expandedOrder, setExpandedOrder] = useState(null);
 
   const counts = useMemo(() => {
     const result = { all: orders.length, success: 0, failed: 0, pending: 0 };
@@ -89,7 +102,7 @@ const OrdersPanel = ({ orders = [] }) => {
 
         {visibleOrders.length ? (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-[11px]">
+            <table className="w-full min-w-[900px] text-left text-[11px]">
               <thead>
                 <tr className="border-b border-brand-line/70 bg-brand-cream/40 text-[9px] uppercase tracking-[0.12em] text-brand-muted">
                   <th className="px-5 py-3 font-bold">Order</th>
@@ -97,39 +110,108 @@ const OrdersPanel = ({ orders = [] }) => {
                   <th className="px-3 py-3 font-bold">Date</th>
                   <th className="px-3 py-3 font-bold">Items</th>
                   <th className="px-3 py-3 font-bold">Total</th>
+                  <th className="px-3 py-3 font-bold">Shipping</th>
                   <th className="px-3 py-3 font-bold">Status</th>
                   <th className="px-5 py-3 font-bold">Reference</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-line/60">
                 {visibleOrders.map((order) => (
-                  <tr key={order.id} className="transition hover:bg-brand-cream/40">
-                    <td className="px-5 py-3.5 font-extrabold">#{order.id}</td>
-                    <td className="max-w-[190px] truncate px-3 py-3.5 text-brand-muted">
-                      {order.email || "Guest"}
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-3.5 text-brand-muted">
-                      {formatAdminDate(order.date)}
-                    </td>
-                    <td className="px-3 py-3.5 text-brand-muted">
-                      {order.items?.length || 0}
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-3.5 font-extrabold">
-                      {money(order.total, 2)}
-                    </td>
-                    <td className="px-3 py-3.5">
-                      <span
-                        className={`inline-flex rounded-full px-2 py-1 text-[9px] font-extrabold ${
-                          STATUS_STYLES[order.status] || "bg-brand-blush text-brand-rose-deep"
-                        }`}
-                      >
-                        {STATUS_LABELS[order.status] || order.status || "Unknown"}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-[10px] text-brand-muted">
-                      {order.paymentReference || "—"}
-                    </td>
-                  </tr>
+                  <Fragment key={order.id}>
+                    <tr className="transition hover:bg-brand-cream/40">
+                      <td className="px-5 py-3.5 font-extrabold">#{order.id}</td>
+                      <td className="max-w-[190px] truncate px-3 py-3.5 text-brand-muted">
+                        {order.email || "Guest"}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-3.5 text-brand-muted">
+                        {formatAdminDate(order.date)}
+                      </td>
+                      <td className="px-3 py-3.5 text-brand-muted">
+                        {order.items?.length || 0}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-3.5 font-extrabold">
+                        {money(order.total, 2)}
+                      </td>
+                      <td className="px-3 py-3.5">
+                        {order.shipping ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setExpandedOrder((current) =>
+                                current === order.id ? null : order.id,
+                              )
+                            }
+                            className="inline-flex items-center gap-1.5 rounded-full bg-brand-blush px-2 py-1 text-[9px] font-extrabold text-brand-rose-deep transition hover:bg-brand-rose/15"
+                            aria-expanded={expandedOrder === order.id}
+                          >
+                            {[order.shipping.city, order.shipping.state]
+                              .filter(Boolean)
+                              .join(", ") || "View address"}
+                            <ChevronDown
+                              className={`h-3 w-3 transition ${
+                                expandedOrder === order.id ? "rotate-180" : ""
+                              }`}
+                            />
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-brand-muted">Not provided</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-3.5">
+                        <span
+                          className={`inline-flex rounded-full px-2 py-1 text-[9px] font-extrabold ${
+                            STATUS_STYLES[order.status] || "bg-brand-blush text-brand-rose-deep"
+                          }`}
+                        >
+                          {STATUS_LABELS[order.status] || order.status || "Unknown"}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-[10px] text-brand-muted">
+                        {order.paymentReference || "—"}
+                      </td>
+                    </tr>
+
+                    {expandedOrder === order.id && (
+                      <tr className="bg-brand-cream/40">
+                        <td colSpan={8} className="px-5 py-4">
+                          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            <div>
+                              <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-brand-muted">
+                                Ship to
+                              </p>
+                              <p className="mt-1 text-[11px] font-extrabold">
+                                {order.shipping.fullName || "Customer"}
+                              </p>
+                              <p className="mt-0.5 text-[11px] leading-5 text-brand-muted">
+                                {formatShippingAddress(order.shipping) || "No address details"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-brand-muted">
+                                Phone
+                              </p>
+                              <p className="mt-1 text-[11px] font-semibold">
+                                {order.shipping.phone || "—"}
+                              </p>
+                              <p className="mt-0.5 text-[11px] text-brand-muted">
+                                {order.email || "—"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-brand-muted">
+                                Items
+                              </p>
+                              <p className="mt-1 text-[11px] leading-5 text-brand-muted">
+                                {order.items
+                                  ?.map((item) => `${item.name} × ${item.quantity}`)
+                                  .join(", ") || "—"}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
                 ))}
               </tbody>
             </table>

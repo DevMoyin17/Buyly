@@ -364,8 +364,15 @@ const DashboardOverview = ({ products = [], orders = [], onNavigate }) => {
                   {recentOrders.map((order) => (
                     <tr key={order.id} className="text-[11px]">
                       <td className="py-3 pr-3 font-extrabold">#{order.id}</td>
-                      <td className="max-w-[160px] truncate py-3 pr-3 text-brand-muted">
-                        {order.email || "Guest"}
+                      <td className="max-w-[160px] py-3 pr-3 text-brand-muted">
+                        <p className="truncate">{order.email || "Guest"}</p>
+                        {(order.shipping?.city || order.shipping?.state) && (
+                          <p className="truncate text-[9px]">
+                            {[order.shipping.city, order.shipping.state]
+                              .filter(Boolean)
+                              .join(", ")}
+                          </p>
+                        )}
                       </td>
                       <td className="whitespace-nowrap py-3 pr-3 text-brand-muted">
                         {formatAdminDate(order.date)}
