@@ -1,34 +1,52 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import AdminShell from "@/components/admin/AdminShell";
+import DashboardOverview from "@/components/admin/DashboardOverview";
+import OrdersPanel from "@/components/admin/OrdersPanel";
+import CustomersPanel from "@/components/admin/CustomersPanel";
 import ProductForm from "@/components/admin/ProductForm";
 import ProductList from "@/components/admin/ProductList";
-import { useStore } from "@/lib/store";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import AdminAuth from "@/components/admin/AdminAuth";
+import { useStore } from "@/lib/store";
+import { getMonthlyStats } from "@/lib/adminMetrics";
 
 const Admin = () => {
-  const { fetchProducts, isLoading, error } = useStore();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [sessionState, setSessionState] = useState("checking");
+  const [tab, setTab] = useState("overview");
   const navigate = useNavigate();
 
+  const products = useStore((state) => state.products);
+  const orders = useStore((state) => state.orders);
+  const error = useStore((state) => state.error);
+  const fetchProducts = useStore((state) => state.fetchProducts);
+  const fetchOrders = useStore((state) => state.fetchOrders);
 
- useEffect(() => {
-    const checkAuth = () => {
-      const session = JSON.parse(localStorage.getItem("adminSession"));
-      if (!session || !session.loggedIn) {
-        setIsAuthenticated(false);
-        navigate("/admin/login");
-      } else {
-        setIsAuthenticated(true);
-        fetchProducts();
-      }
-    };
+  useEffect(() => {
+    let session = null;
+    try {
+      session = JSON.parse(localStorage.getItem("adminSession"));
+    } catch {
+      session = null;
+    }
 
-    checkAuth();
-  }, [fetchProducts, navigate]);
+    if (!session?.loggedIn) {
+      setSessionState("unauthenticated");
+      navigate("/admin/login", { replace: true });
+      return;
+    }
+
+    setSessionState("authenticated");
+    Promise.allSettled([fetchProducts(), fetchOrders()]);
+  }, [fetchProducts, fetchOrders, navigate]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [tab]);
+
+  const monthStats = useMemo(() => getMonthlyStats(orders), [orders]);
 
   const handleLogout = () => {
     localStorage.removeItem("adminSession");
@@ -36,60 +54,81 @@ const Admin = () => {
     navigate("/admin/login");
   };
 
-  if (!isAuthenticated) {
-    return <AdminAuth />;
-  }
-
-  if (error) {
+  if (sessionState === "checking") {
     return (
-      <div className="container py-12">
-        <div className="store-panel mx-auto max-w-xl p-6">
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-          <Button className="mt-4" variant="outline" onClick={() => fetchProducts()}>
-            Try again
-          </Button>
-        </div>
+      <div className="grid min-h-screen place-items-center bg-[#F5F6F8]">
+        <Loader2 className="h-8 w-8 animate-spin text-brand-tangerine" />
       </div>
     );
   }
 
-  return (
-    <div className="container py-8 sm:py-10">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="eyebrow">Store admin</p>
-          <h1 className="mt-1 text-3xl font-extrabold tracking-[-0.045em] sm:text-4xl">Admin dashboard</h1>
-          <p className="mt-2 text-sm text-brand-muted">Manage the Glowora collection and keep stock up to date.</p>
-        </div>
-        <Button onClick={handleLogout} variant="outline">Logout</Button>
-      </div>
+  if (sessionState === "unauthenticated") {
+    return null;
+  }
 
-      {isLoading ? (
-        <div className="flex justify-center items-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-brand-tangerine" />
-        </div>
-      ) : (
-        <div className="mt-8 grid gap-6">
-          <section className="store-panel p-5 sm:p-6">
-            <h2 className="text-xl font-extrabold">Add new product</h2>
-            <p className="mt-1 text-xs text-brand-muted">New items appear in the storefront instantly after saving.</p>
+  return (
+    <AdminShell
+      activeTab={tab}
+      onTabChange={setTab}
+      onLogout={handleLogout}
+      orderCount={orders.length}
+      monthRevenue={monthStats.revenue}
+      monthOrders={monthStats.count}
+    >
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
+            <span>{error}</span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => Promise.allSettled([fetchProducts(), fetchOrders()])}
+            >
+              Try again
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {tab === "overview" && (
+        <DashboardOverview products={products} orders={orders} onNavigate={setTab} />
+      )}
+
+      {tab === "orders" && <OrdersPanel orders={orders} />}
+
+      {tab === "customers" && <CustomersPanel orders={orders} />}
+
+      {tab === "products" && (
+        <div className="space-y-5">
+          <section className="rounded-2xl border border-brand-line/70 bg-white p-5 shadow-sm sm:p-6">
+            <h2 className="text-lg font-extrabold">Add new product</h2>
+            <p className="mt-1 text-xs text-brand-muted">
+              New items appear in the storefront instantly after saving.
+            </p>
             <div className="mt-5">
               <ProductForm />
             </div>
           </section>
 
-          <section className="store-panel p-5 sm:p-6">
-            <h2 className="text-xl font-extrabold">Product catalogue</h2>
-            <p className="mt-1 text-xs text-brand-muted">Edit products, update stock and review incoming orders.</p>
-            <div className="mt-5">
+          <section className="rounded-2xl border border-brand-line/70 bg-white p-5 shadow-sm sm:p-6">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-extrabold">Product catalogue</h2>
+                <p className="mt-1 text-xs text-brand-muted">
+                  Edit products, update stock and keep the collection current.
+                </p>
+              </div>
+              <span className="rounded-full bg-brand-blush px-3 py-1 text-[10px] font-extrabold text-brand-rose-deep">
+                {products.length} product{products.length === 1 ? "" : "s"}
+              </span>
+            </div>
+            <div className="mt-4">
               <ProductList />
             </div>
           </section>
         </div>
       )}
-    </div>
+    </AdminShell>
   );
 };
 
