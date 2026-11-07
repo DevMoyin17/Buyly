@@ -144,7 +144,7 @@ const Checkout = () => {
             Add a few favourites to your bag before heading to checkout.
           </p>
           <Button asChild className="mt-6">
-            <Link to="/#shop">
+            <Link to="/shop">
               <ArrowLeft className="h-4 w-4" />
               Back to the shop
             </Link>
@@ -166,7 +166,7 @@ const Checkout = () => {
             Review your order and complete payment securely with Paystack.
           </p>
         </div>
-        <Link to="/#shop" className="link-arrow">
+        <Link to="/shop" className="link-arrow">
           <ArrowLeft className="h-4 w-4" />
           Continue shopping
         </Link>

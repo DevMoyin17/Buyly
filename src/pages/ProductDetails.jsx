@@ -160,7 +160,7 @@ const ProductDetails = () => {
       <nav className="flex flex-wrap items-center gap-1.5 text-[11px] font-semibold text-brand-muted" aria-label="Breadcrumb">
         <Link to="/" className="transition hover:text-brand-tangerine">Home</Link>
         <span>/</span>
-        <Link to="/#shop" className="transition hover:text-brand-tangerine">Shop</Link>
+        <Link to="/shop" className="transition hover:text-brand-tangerine">Shop</Link>
         <span>/</span>
         <span className="text-brand-ink">{product.name}</span>
       </nav>
@@ -324,7 +324,7 @@ const ProductDetails = () => {
               <p className="eyebrow">Keep exploring</p>
               <h2 className="mt-2 font-display text-3xl font-medium tracking-[-0.03em] sm:text-4xl">You may also like</h2>
             </div>
-            <Link to="/#shop" className="link-arrow hidden sm:inline-flex">
+            <Link to="/shop" className="link-arrow hidden sm:inline-flex">
               Shop all
               <ArrowRight className="h-4 w-4" />
             </Link>

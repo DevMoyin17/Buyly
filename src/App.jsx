@@ -9,6 +9,7 @@ import {
 } from "react-router-dom";
 import { Toaster } from "sonner";
 import Index from "./pages/Index";
+import Shop from "./pages/Shop";
 import ProductDetails from "./pages/ProductDetails";
 import Auth from "./pages/Auth";
 import Signin from "./pages/Signin";
@@ -80,6 +81,7 @@ function App() {
       <Routes>
         <Route element={<StoreLayout />}>
           <Route path="/" element={<Index />} />
+          <Route path="/shop" element={<Shop />} />
           <Route path="/product/:id" element={<ProductDetails />} />
           <Route path="/checkout" element={<RequireAuth><Checkout /></RequireAuth>} />
         </Route>

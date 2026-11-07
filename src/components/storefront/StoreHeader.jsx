@@ -12,7 +12,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
 const navLinks = [
   { label: "Home", to: "/", hash: "" },
-  { label: "Shop", to: "/#shop", hash: "#shop" },
+  { label: "Shop", to: "/shop", match: "/shop" },
   { label: "Categories", to: "/#categories", hash: "#categories" },
   { label: "Bestsellers", to: "/#bestsellers", hash: "#bestsellers" },
   { label: "Contact", contact: true },
@@ -66,6 +66,7 @@ const StoreHeader = () => {
   const isHome = location.pathname === "/" && !location.hash;
 
   const isActive = (link) => {
+    if (link.match) return location.pathname === link.match;
     if (link.hash) return location.pathname === "/" && location.hash === link.hash;
     return isHome;
   };
@@ -86,8 +87,8 @@ const StoreHeader = () => {
       }, 120);
     };
 
-    if (location.pathname !== "/") {
-      navigate("/#shop");
+    if (location.pathname !== "/shop") {
+      navigate("/shop");
       window.setTimeout(dispatch, 320);
       return;
     }

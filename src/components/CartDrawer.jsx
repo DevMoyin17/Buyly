@@ -95,7 +95,7 @@ const CartDrawer = ({ open, onClose }) => {
                 className="mt-5"
                 onClick={() => {
                   onClose();
-                  navigate("/#shop");
+                  navigate("/shop");
                 }}
               >
                 Start shopping

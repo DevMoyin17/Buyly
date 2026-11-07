@@ -4,7 +4,7 @@ import BrandLogo from "@/components/storefront/BrandLogo";
 import { CONTACT_EMAIL } from "@/lib/config";
 
 const shopLinks = [
-  { label: "Shop All", to: "/#shop" },
+  { label: "Shop All", to: "/shop" },
   { label: "Bestsellers", to: "/#bestsellers" },
   { label: "Categories", to: "/#categories" },
   { label: "The Glowora Edit", to: "/#featured" },

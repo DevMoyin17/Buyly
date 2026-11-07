@@ -35,7 +35,7 @@ const HeroBanner = ({ products = [] }) => {
 
           <div className="mt-7 flex flex-wrap items-center gap-4">
             <Link
-              to="/#shop"
+              to="/shop"
               className="inline-flex h-12 items-center gap-2 rounded-full bg-brand-ink px-7 text-sm font-semibold text-white shadow-warm transition hover:-translate-y-0.5 hover:bg-brand-rose-deep"
             >
               Shop Skincare
