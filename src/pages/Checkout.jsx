@@ -4,6 +4,7 @@ import { ArrowLeft, Check, LockKeyhole, ShieldCheck, ShoppingBag } from "lucide-
 import { toast } from "sonner";
 import { PaystackButton } from "react-paystack";
 import { useStore } from "@/lib/store";
+import { useAuthStore } from "@/lib/auth";
 import { formatMoney } from "@/lib/format";
 import { getProductCategory } from "@/lib/catalog";
 import ProductImage from "@/components/storefront/ProductImage";
@@ -16,8 +17,9 @@ const Checkout = () => {
   const addOrder = useStore((state) => state.addOrder);
   const currency = useStore((state) => state.currency);
   const exchangeRates = useStore((state) => state.exchangeRates);
+  const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(user?.email || "");
   const [paying, setPaying] = useState(false);
 
   const totalUSD = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -67,6 +69,11 @@ const Checkout = () => {
       toast.error("Payment was not completed.");
     },
   };
+
+  // The checkout route is guarded, but keep payment unreachable without an account.
+  if (!user) {
+    return null;
+  }
 
   if (cart.length === 0) {
     return (
@@ -138,6 +145,10 @@ const Checkout = () => {
               {!isEmailValid(email) && email.length > 0 && (
                 <p className="field-error mt-1.5">Enter a valid email address to continue.</p>
               )}
+              <p className="mt-2 text-[10px] leading-5 text-brand-muted">
+                Signed in as <span className="font-semibold text-brand-ink">{user.name}</span>. Order
+                updates will be sent to this email.
+              </p>
             </div>
           </section>
 

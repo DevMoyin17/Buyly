@@ -1,19 +1,23 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import axios from "axios";
 import { toast } from "sonner";
 import AuthShell from "@/components/storefront/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/lib/auth";
 
 const Signin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const url = "https://bookit-app-vn3p.vercel.app/user/signin";
+  const location = useLocation();
+  const user = useAuthStore((state) => state.user);
+  const signIn = useAuthStore((state) => state.signIn);
+
+  const redirectTo = location.state?.from || "/";
 
   const formik = useFormik({
     initialValues: {
@@ -24,21 +28,26 @@ const Signin = () => {
       Email: yup.string().email("Enter a valid email").required("Email is required"),
       Password: yup.string().required("Password is required"),
     }),
-    onSubmit: (values) => {
+    onSubmit: async (values) => {
       setIsLoading(true);
-      axios
-        .post(url, values)
-        .then((res) => {
-          toast.success(res.data?.message || "Welcome back to Glowora.");
-          if (res.data?.token) localStorage.setItem("token", res.data.token);
-          navigate("/");
-        })
-        .catch((err) => {
-          toast.error(err.response?.data?.message || "Could not sign you in.");
-        })
-        .finally(() => setIsLoading(false));
+      try {
+        const account = await signIn({
+          email: values.Email,
+          password: values.Password,
+        });
+        toast.success(`Welcome back, ${account.name.split(" ")[0]}.`);
+        navigate(redirectTo, { replace: true });
+      } catch (error) {
+        toast.error(error.message || "Could not sign you in.");
+      } finally {
+        setIsLoading(false);
+      }
     },
   });
+
+  if (user) {
+    return <Navigate to={redirectTo} replace />;
+  }
 
   return (
     <AuthShell
@@ -48,7 +57,11 @@ const Signin = () => {
       footer={
         <span>
           New to Glowora?{" "}
-          <Link to="/auth" className="font-extrabold text-brand-tangerine hover:text-brand-tangerine-dark">
+          <Link
+            to="/auth"
+            state={location.state}
+            className="font-extrabold text-brand-tangerine hover:text-brand-tangerine-dark"
+          >
             Create an account
           </Link>
         </span>

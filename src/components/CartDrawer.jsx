@@ -2,6 +2,7 @@ import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useStore } from "@/lib/store";
+import { useAuthStore } from "@/lib/auth";
 import { formatMoney } from "@/lib/format";
 import { getProductCategory } from "@/lib/catalog";
 import ProductImage from "@/components/storefront/ProductImage";
@@ -20,6 +21,7 @@ const CartDrawer = ({ open, onClose }) => {
   const removeFromCart = useStore((state) => state.removeFromCart);
   const updateQuantity = useStore((state) => state.updateQuantity);
   const clearCart = useStore((state) => state.clearCart);
+  const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -27,6 +29,13 @@ const CartDrawer = ({ open, onClose }) => {
 
   const handleCheckout = () => {
     onClose();
+
+    if (!user) {
+      toast.info("Sign in or create an account to check out.");
+      navigate("/signin", { state: { from: "/checkout" } });
+      return;
+    }
+
     navigate("/checkout");
   };
 

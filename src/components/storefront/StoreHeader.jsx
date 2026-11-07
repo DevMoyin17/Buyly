@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, Search, ShoppingBag, UserRound } from "lucide-react";
+import { toast } from "sonner";
 import { useStore } from "@/lib/store";
+import { useAuthStore } from "@/lib/auth";
 import { CONTACT_EMAIL } from "@/lib/config";
 import BrandLogo from "@/components/storefront/BrandLogo";
 import CurrencySelector from "@/components/CurrencySelector";
@@ -19,9 +21,46 @@ const navLinks = [
 const StoreHeader = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const accountRef = useRef(null);
   const cart = useStore((state) => state.cart);
+  const user = useAuthStore((state) => state.user);
+  const signOut = useAuthStore((state) => state.signOut);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const firstName = user?.name?.trim().split(/\s+/)[0] || "Account";
+  const initials =
+    user?.name
+      ?.trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || "U";
+
+  useEffect(() => {
+    if (!accountOpen) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (!accountRef.current?.contains(event.target)) setAccountOpen(false);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [accountOpen]);
+
+  useEffect(() => {
+    setAccountOpen(false);
+  }, [location.pathname, location.hash]);
+
+  const handleSignOut = () => {
+    signOut();
+    setAccountOpen(false);
+    setMenuOpen(false);
+    toast.success("You have been signed out.");
+    navigate("/");
+  };
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const isHome = location.pathname === "/" && !location.hash;
@@ -96,13 +135,53 @@ const StoreHeader = () => {
               <CurrencySelector className="h-10 w-[76px] border-transparent bg-transparent px-1 text-[10px] shadow-none hover:bg-brand-blush" />
             </div>
 
-            <Link
-              to="/signin"
-              className="grid h-10 w-10 place-items-center rounded-full text-brand-ink/75 transition hover:bg-brand-blush hover:text-brand-ink"
-              aria-label="Account"
-            >
-              <UserRound className="h-[18px] w-[18px]" />
-            </Link>
+            {user ? (
+              <div className="relative" ref={accountRef}>
+                <button
+                  type="button"
+                  className="flex h-10 items-center gap-2 rounded-full px-1.5 text-brand-ink/75 transition hover:bg-brand-blush hover:text-brand-ink sm:px-2"
+                  onClick={() => setAccountOpen((open) => !open)}
+                  aria-label="Account menu"
+                  aria-expanded={accountOpen}
+                  aria-haspopup="menu"
+                >
+                  <span className="grid h-7 w-7 place-items-center rounded-full bg-brand-rose/15 text-[10px] font-extrabold text-brand-rose-deep">
+                    {initials}
+                  </span>
+                  <span className="hidden max-w-24 truncate text-xs font-semibold sm:inline">
+                    {firstName}
+                  </span>
+                </button>
+
+                {accountOpen && (
+                  <div
+                    role="menu"
+                    className="absolute right-0 top-12 z-50 w-60 rounded-2xl border border-brand-line bg-white p-3 shadow-soft"
+                  >
+                    <p className="truncate text-sm font-extrabold text-brand-ink">{user.name}</p>
+                    <p className="truncate text-[11px] text-brand-muted">{user.email}</p>
+                    <div className="mt-3 border-t border-brand-line pt-3">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={handleSignOut}
+                        className="w-full rounded-full bg-brand-ink px-4 py-2 text-xs font-semibold text-white transition hover:bg-brand-rose-deep"
+                      >
+                        Sign out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                to="/signin"
+                className="grid h-10 w-10 place-items-center rounded-full text-brand-ink/75 transition hover:bg-brand-blush hover:text-brand-ink"
+                aria-label="Account"
+              >
+                <UserRound className="h-[18px] w-[18px]" />
+              </Link>
+            )}
 
             <button
               type="button"
@@ -188,15 +267,31 @@ const StoreHeader = () => {
             </div>
 
             <div className="border-t border-brand-line px-5 py-5">
-              <div className="flex items-center gap-4 text-xs font-semibold text-brand-muted">
-                <Link to="/signin" onClick={closeMenu} className="hover:text-brand-ink">
-                  Sign in
-                </Link>
-                <span className="h-1 w-1 rounded-full bg-brand-line" />
-                <Link to="/auth" onClick={closeMenu} className="hover:text-brand-ink">
-                  Create account
-                </Link>
-              </div>
+              {user ? (
+                <div className="flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-semibold text-brand-ink">{user.name}</p>
+                    <p className="truncate text-[10px] text-brand-muted">{user.email}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="shrink-0 text-xs font-semibold text-brand-rose-deep transition hover:text-brand-ink"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-4 text-xs font-semibold text-brand-muted">
+                  <Link to="/signin" onClick={closeMenu} className="hover:text-brand-ink">
+                    Sign in
+                  </Link>
+                  <span className="h-1 w-1 rounded-full bg-brand-line" />
+                  <Link to="/auth" onClick={closeMenu} className="hover:text-brand-ink">
+                    Create account
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </SheetContent>

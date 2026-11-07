@@ -17,6 +17,7 @@ import Admin from "./pages/Admin";
 import AdminAuth from "./components/admin/AdminAuth";
 import Footer from "./components/Footer";
 import StoreHeader from "./components/storefront/StoreHeader";
+import { useAuthStore } from "./lib/auth";
 
 const ScrollToTop = () => {
   const location = useLocation();
@@ -37,6 +38,25 @@ const StoreLayout = () => (
     <Footer />
   </div>
 );
+
+const StandaloneLayout = () => (
+  <div className="flex min-h-screen flex-col bg-brand-cream text-brand-ink">
+    <main className="flex-1">
+      <Outlet />
+    </main>
+  </div>
+);
+
+const RequireAuth = ({ children }) => {
+  const user = useAuthStore((state) => state.user);
+  const location = useLocation();
+
+  if (!user) {
+    return <Navigate to="/signin" replace state={{ from: location.pathname }} />;
+  }
+
+  return children;
+};
 
 function App() {
   return (
@@ -61,7 +81,10 @@ function App() {
         <Route element={<StoreLayout />}>
           <Route path="/" element={<Index />} />
           <Route path="/product/:id" element={<ProductDetails />} />
-          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/checkout" element={<RequireAuth><Checkout /></RequireAuth>} />
+        </Route>
+
+        <Route element={<StandaloneLayout />}>
           <Route path="/auth" element={<Auth />} />
           <Route path="/signin" element={<Signin />} />
           <Route path="/admin" element={<Admin />} />

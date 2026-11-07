@@ -1,19 +1,23 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import axios from "axios";
 import { toast } from "sonner";
 import AuthShell from "@/components/storefront/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/lib/auth";
 
 const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const url = "https://bookit-app-vn3p.vercel.app/user/signup";
+  const location = useLocation();
+  const user = useAuthStore((state) => state.user);
+  const signUp = useAuthStore((state) => state.signUp);
+
+  const redirectTo = location.state?.from || "/";
 
   const formik = useFormik({
     initialValues: {
@@ -24,8 +28,9 @@ const Auth = () => {
     validationSchema: yup.object({
       Name: yup
         .string()
-        .required("Name is required")
-        .matches(/^[A-Z]/, "First letter must be uppercase"),
+        .trim()
+        .min(2, "Enter your full name")
+        .required("Name is required"),
       Email: yup.string().email("Enter a valid email").required("Email is required"),
       Password: yup
         .string()
@@ -35,20 +40,27 @@ const Auth = () => {
           "Use at least 8 characters, one uppercase, one lowercase, one number and one symbol",
         ),
     }),
-    onSubmit: (values) => {
+    onSubmit: async (values) => {
       setIsLoading(true);
-      axios
-        .post(url, values)
-        .then((res) => {
-          toast.success(res.data?.message || "Account created. Sign in to continue.");
-          navigate("/signin");
-        })
-        .catch((err) => {
-          toast.error(err.response?.data?.message || "Could not create your account.");
-        })
-        .finally(() => setIsLoading(false));
+      try {
+        const account = await signUp({
+          name: values.Name,
+          email: values.Email,
+          password: values.Password,
+        });
+        toast.success(`Welcome to Glowora, ${account.name.split(" ")[0]}.`);
+        navigate(redirectTo, { replace: true });
+      } catch (error) {
+        toast.error(error.message || "Could not create your account.");
+      } finally {
+        setIsLoading(false);
+      }
     },
   });
+
+  if (user) {
+    return <Navigate to={redirectTo} replace />;
+  }
 
   return (
     <AuthShell
@@ -58,7 +70,11 @@ const Auth = () => {
       footer={
         <span>
           Already have an account?{" "}
-          <Link to="/signin" className="font-extrabold text-brand-tangerine hover:text-brand-tangerine-dark">
+          <Link
+            to="/signin"
+            state={location.state}
+            className="font-extrabold text-brand-tangerine hover:text-brand-tangerine-dark"
+          >
             Sign in
           </Link>
         </span>
