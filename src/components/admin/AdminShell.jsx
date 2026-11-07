@@ -14,7 +14,8 @@ import {
   X,
 } from "lucide-react";
 import BrandLogo from "@/components/storefront/BrandLogo";
-import { formatAdminMoney } from "@/lib/adminMetrics";
+import CurrencySelector from "@/components/CurrencySelector";
+import { useAdminMoney } from "@/lib/useAdminMoney";
 
 const NAV_ITEMS = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
@@ -54,12 +55,14 @@ const SidebarContent = ({
   monthRevenue,
   monthOrders,
   onNavigate,
-}) => (
-  <div className="flex h-full flex-col overflow-y-auto">
+}) => {
+  const money = useAdminMoney();
+
+  return (
+    <div className="flex h-full flex-col overflow-y-auto">
     <div className="flex items-center px-5 py-5">
       <BrandLogo />
     </div>
-
     <div className="px-3">
       <p className="px-3 pb-2 text-[9px] font-bold uppercase tracking-[0.16em] text-brand-muted">
         Manage
@@ -121,7 +124,7 @@ const SidebarContent = ({
         </p>
         <p className="mt-1 text-[10px] font-semibold text-brand-muted">This month</p>
         <p className="mt-2 text-xl font-extrabold text-brand-ink">
-          {formatAdminMoney(monthRevenue)}
+          {money(monthRevenue)}
         </p>
         <p className="mt-1 text-[10px] text-brand-muted">
           {monthOrders} paid order{monthOrders === 1 ? "" : "s"}
@@ -148,7 +151,8 @@ const SidebarContent = ({
       </div>
     </div>
   </div>
-);
+  );
+};
 
 const AdminShell = ({
   activeTab,
@@ -226,6 +230,8 @@ const AdminShell = ({
                 {meta.subtitle}
               </p>
             </div>
+
+            <CurrencySelector className="h-9 w-[86px] border-brand-line bg-white text-[10px]" />
 
             <span className="hidden items-center gap-1.5 rounded-lg border border-brand-line bg-white px-2.5 py-1.5 text-[10px] font-bold text-brand-muted sm:inline-flex">
               <CalendarDays className="h-3.5 w-3.5" />

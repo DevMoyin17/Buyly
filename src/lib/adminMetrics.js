@@ -1,3 +1,5 @@
+import { formatMoney } from "./format";
+
 export const LOW_STOCK_THRESHOLD = 12;
 
 const toNumber = (value) => {
@@ -8,13 +10,16 @@ const toNumber = (value) => {
 export const successfulOrders = (orders = []) =>
   orders.filter((order) => order?.status === "success");
 
-export const formatAdminMoney = (value, decimals = 0) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
+export const formatAdminMoney = (
+  valueUSD,
+  currency = "USD",
+  exchangeRates = null,
+  decimals = 0,
+) =>
+  formatMoney(valueUSD, currency, exchangeRates, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
-  }).format(toNumber(value));
+  });
 
 export const formatAdminDate = (value) => {
   if (!value) return "—";

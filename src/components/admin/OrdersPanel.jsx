@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { ShoppingBag } from "lucide-react";
-import { formatAdminDate, formatAdminMoney } from "@/lib/adminMetrics";
+import { formatAdminDate } from "@/lib/adminMetrics";
+import { useAdminMoney } from "@/lib/useAdminMoney";
 
 const FILTERS = [
   { id: "all", label: "All orders" },
@@ -22,6 +23,7 @@ const STATUS_LABELS = {
 };
 
 const OrdersPanel = ({ orders = [] }) => {
+  const money = useAdminMoney();
   const [filter, setFilter] = useState("all");
 
   const counts = useMemo(() => {
@@ -78,7 +80,7 @@ const OrdersPanel = ({ orders = [] }) => {
             </p>
           </div>
           <span className="rounded-full bg-brand-blush px-3 py-1 text-[10px] font-extrabold text-brand-rose-deep">
-            {formatAdminMoney(
+            {money(
               visibleOrders.reduce((total, order) => total + (Number(order.total) || 0), 0),
               2,
             )}
@@ -113,7 +115,7 @@ const OrdersPanel = ({ orders = [] }) => {
                       {order.items?.length || 0}
                     </td>
                     <td className="whitespace-nowrap px-3 py-3.5 font-extrabold">
-                      {formatAdminMoney(order.total, 2)}
+                      {money(order.total, 2)}
                     </td>
                     <td className="px-3 py-3.5">
                       <span

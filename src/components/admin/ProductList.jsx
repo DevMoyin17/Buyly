@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useStore } from "@/lib/store";
+import { useAdminMoney } from "@/lib/useAdminMoney";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { Pencil, Trash2, Save } from "lucide-react";
@@ -11,6 +12,7 @@ import { Pencil, Trash2, Save } from "lucide-react";
 const ProductList = () => {
   const products = useStore((state) => state.products);
   const fetchProducts = useStore((state) => state.fetchProducts);
+  const money = useAdminMoney();
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({
     name: "",
@@ -101,7 +103,7 @@ const ProductList = () => {
                   }
                 />
               ) : (
-                `$${Number(product.price || 0).toFixed(2)}`
+                money(product.price, 2)
               )}
             </TableCell>
             <TableCell>

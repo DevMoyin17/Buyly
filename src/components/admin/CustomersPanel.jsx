@@ -2,11 +2,12 @@ import { useMemo } from "react";
 import { Users } from "lucide-react";
 import {
   formatAdminDate,
-  formatAdminMoney,
   getCustomers,
 } from "@/lib/adminMetrics";
+import { useAdminMoney } from "@/lib/useAdminMoney";
 
 const CustomersPanel = ({ orders = [] }) => {
+  const money = useAdminMoney();
   const customers = useMemo(() => getCustomers(orders), [orders]);
   const returning = customers.filter((customer) => customer.orders > 1).length;
   const totalSpent = customers.reduce((total, customer) => total + customer.spent, 0);
@@ -15,7 +16,7 @@ const CustomersPanel = ({ orders = [] }) => {
   const summary = [
     { label: "Total customers", value: customers.length },
     { label: "Returning", value: returning },
-    { label: "Average spend", value: formatAdminMoney(averageSpend, 2) },
+    { label: "Average spend", value: money(averageSpend, 2) },
   ];
 
   return (
@@ -68,7 +69,7 @@ const CustomersPanel = ({ orders = [] }) => {
                     </td>
                     <td className="px-3 py-3.5 text-brand-muted">{customer.orders}</td>
                     <td className="whitespace-nowrap px-3 py-3.5 font-extrabold">
-                      {formatAdminMoney(customer.spent, 2)}
+                      {money(customer.spent, 2)}
                     </td>
                     <td className="whitespace-nowrap px-5 py-3.5 text-brand-muted">
                       {formatAdminDate(customer.lastOrder)}

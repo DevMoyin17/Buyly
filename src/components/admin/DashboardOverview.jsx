@@ -15,13 +15,13 @@ import ProductImage from "@/components/storefront/ProductImage";
 import {
   LOW_STOCK_THRESHOLD,
   formatAdminDate,
-  formatAdminMoney,
   getCustomerSegments,
   getCustomers,
   getSalesSeries,
   getTopProducts,
   successfulOrders,
 } from "@/lib/adminMetrics";
+import { useAdminMoney } from "@/lib/useAdminMoney";
 
 const STAT_TONES = {
   emerald: "bg-emerald-50 text-emerald-600",
@@ -137,6 +137,7 @@ const EmptyState = ({ icon: Icon, title, description }) => (
 );
 
 const DashboardOverview = ({ products = [], orders = [], onNavigate }) => {
+  const money = useAdminMoney();
   const paidOrders = useMemo(() => successfulOrders(orders), [orders]);
   const revenue = useMemo(
     () => paidOrders.reduce((total, order) => total + (Number(order.total) || 0), 0),
@@ -172,7 +173,7 @@ const DashboardOverview = ({ products = [], orders = [], onNavigate }) => {
   const stats = [
     {
       label: "Total revenue",
-      value: formatAdminMoney(revenue),
+      value: money(revenue),
       detail: `${paidOrders.length} paid order${paidOrders.length === 1 ? "" : "s"}`,
       icon: CircleDollarSign,
       tone: "emerald",
@@ -241,7 +242,7 @@ const DashboardOverview = ({ products = [], orders = [], onNavigate }) => {
               <h2 className="text-sm font-extrabold">Sales Overview</h2>
               <div className="mt-1.5 flex flex-wrap items-baseline gap-2">
                 <p className="text-2xl font-extrabold tracking-[-0.03em]">
-                  {formatAdminMoney(revenue)}
+                  {money(revenue)}
                 </p>
                 {trend === null ? (
                   <span className="text-[10px] font-semibold text-brand-muted">
@@ -370,7 +371,7 @@ const DashboardOverview = ({ products = [], orders = [], onNavigate }) => {
                         {formatAdminDate(order.date)}
                       </td>
                       <td className="whitespace-nowrap py-3 pr-3 font-extrabold">
-                        {formatAdminMoney(order.total, 2)}
+                        {money(order.total, 2)}
                       </td>
                       <td className="py-3">
                         <span
@@ -485,7 +486,7 @@ const DashboardOverview = ({ products = [], orders = [], onNavigate }) => {
                   {hasSales ? `${quantity} sold` : `${product.stock} in stock`}
                 </p>
                 <p className="mt-1 text-xs font-extrabold text-brand-rose-deep">
-                  {formatAdminMoney(hasSales ? productRevenue : product.price, 2)}
+                  {money(hasSales ? productRevenue : product.price, 2)}
                 </p>
               </div>
             ))}
