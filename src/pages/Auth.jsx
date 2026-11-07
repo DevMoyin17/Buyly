@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -58,10 +58,6 @@ const Auth = () => {
     },
   });
 
-  if (user) {
-    return <Navigate to={redirectTo} replace />;
-  }
-
   return (
     <AuthShell
       eyebrow="Join the edit"
@@ -80,6 +76,13 @@ const Auth = () => {
         </span>
       }
     >
+      {user && (
+        <p className="mb-4 rounded-xl border border-brand-line bg-brand-cream px-3 py-2 text-[11px] leading-5 text-brand-muted">
+          You are already signed in as{" "}
+          <span className="font-semibold text-brand-ink">{user.email}</span>.
+        </p>
+      )}
+
       <form onSubmit={formik.handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="name" className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-brand-muted">
